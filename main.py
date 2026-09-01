@@ -1,0 +1,1 @@
+print("欢迎来到 Campus Job Agent！")
