@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>校园求职 · 智能助手</title>
+  <!-- 引入 Google Font & Font Awesome (简约美观) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f6f9fc;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      color: #1e293b;
+    }
+
+    .app {
+      max-width: 880px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 36px;
+      box-shadow: 0 20px 60px rgba(0, 20, 40, 0.06), 0 8px 24px rgba(0, 0, 0, 0.02);
+      padding: 32px 36px 40px;
+      transition: all 0.2s ease;
+    }
+
+    /* 头部 (可选) */
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .app-header i {
+      font-size: 24px;
+      color: #2563eb;
+      background: #eef4ff;
+      padding: 10px;
+      border-radius: 16px;
+    }
+    .app-header h1 {
+      font-weight: 600;
+      font-size: 22px;
+      letter-spacing: -0.3px;
+      color: #0b1e33;
+    }
+    .app-header span {
+      font-weight: 400;
+      color: #64748b;
+      font-size: 16px;
+      margin-left: 6px;
+    }
+
+    /* ----- 模块一：用户提问区域 ----- */
+    .question-section {
+      background: #f8fafc;
+      border-radius: 28px;
+      padding: 20px 24px 24px;
+      margin-bottom: 32px;
+      border: 1px solid #eef2f6;
+      transition: box-shadow 0.2s;
+    }
+    .question-section:focus-within {
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.06);
+      border-color: #b9d0fa;
+    }
+
+    .question-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      font-size: 15px;
+      color: #1e293b;
+      margin-bottom: 14px;
+    }
+    .question-label i {
+      color: #2563eb;
+      font-size: 18px;
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .input-wrapper textarea {
+      flex: 1;
+      min-width: 200px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 16px 18px;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+      resize: vertical;
+      min-height: 56px;
+      max-height: 140px;
+      transition: border 0.2s, box-shadow 0.2s;
+      color: #0f1a2c;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .input-wrapper textarea:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .input-wrapper textarea::placeholder {
+      color: #94a3b8;
+      font-weight: 400;
+      font-size: 15px;
+    }
+
+    .btn-ask {
+      background: #2563eb;
+      border: none;
+      border-radius: 40px;
+      padding: 0 30px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 16px;
+      color: white;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-ask i {
+      font-size: 17px;
+    }
+    .btn-ask:hover {
+      background: #1d4ed8;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
+    }
+    .btn-ask:active {
+      transform: scale(0.96);
+      background: #1a45b0;
+    }
+    .btn-ask:disabled {
+      opacity: 0.6;
+      pointer-events: none;
+      filter: grayscale(0.2);
+    }
+
+    /* 模拟加载状态小提示 (仅装饰) */
+    .hint-text {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hint-text i {
+      font-size: 13px;
+    }
+
+    /* ----- 模块二：AI 回答卡片 (适合岗位 · 原因 · 技能缺口 · 建议) ----- */
+    .answer-section {
+      margin-top: 8px;
+      animation: fadeUp 0.35s ease;
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .answer-card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 18px 20px 20px;
+      border: 1px solid #ecf1f7;
+      transition: transform 0.1s ease, box-shadow 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.01);
+    }
+    .answer-card:hover {
+      box-shadow: 0 8px 20px rgba(0, 20, 40, 0.04);
+      border-color: #dce5f0;
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 0.3px;
+      color: #475569;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .card-title i {
+      font-size: 16px;
+      color: #2563eb;
+      width: 20px;
+      text-align: center;
+    }
+
+    .card-content {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #0f1a2c;
+      word-break: break-word;
+    }
+    .card-content .badge {
+      display: inline-block;
+      background: #eef4ff;
+      color: #1d4ed8;
+      font-weight: 500;
+      padding: 2px 12px;
+      border-radius: 40px;
+      font-size: 14px;
+    }
+    .card-content .skill-tag {
+      display: inline-block;
+      background: #f1f5f9;
+      color: #1e293b;
+      padding: 4px 12px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 500;
+      margin: 4px 6px 4px 0;
+    }
+
+    /* 对于 “建议” 卡片 可以稍微强调 */
+    .card-suggestion .card-content {
+      background: #fafcff;
+      padding: 6px 0 2px;
+    }
+
+    /* 占位空状态 */
+    .empty-state {
+      color: #94a3b8;
+      font-size: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 10px 16px;
+      text-align: center;
+    }
+    .empty-state i {
+      font-size: 36px;
+      color: #dce3ec;
+      margin-bottom: 12px;
+    }
+    .empty-state p {
+      max-width: 260px;
+    }
+
+    /* 全宽卡片 (原因/建议可能较长, 但仍保持两列) */
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    /* 动画 */
+    @keyframes fadeUp {
+      0% { opacity: 0; transform: translateY(6px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 响应式 */
+    @media (max-width: 640px) {
+      .app {
+        padding: 24px 18px 28px;
+        border-radius: 28px;
+      }
+      .answer-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      .input-wrapper {
+        flex-direction: column;
+      }
+      .btn-ask {
+        width: 100%;
+        justify-content: center;
+        height: 50px;
+      }
+      .question-section {
+        padding: 18px 16px 20px;
+      }
+      .app-header h1 {
+        font-size: 20px;
+      }
+    }
+
+    /* 模拟数据展示 (后端json渲染) */
+    .highlight {
+      font-weight: 600;
+      color: #0b1e33;
+    }
+    .text-muted {
+      color: #64748b;
+      font-weight: 400;
+    }
+    .divider-light {
+      margin: 8px 0 12px;
+      border: 0;
+      height: 1px;
+      background: linear-gradient(to right, #e9eef3, transparent);
+    }
+  </style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- 头部 (品牌) -->
+  <div class="app-header">
+    <i class="fas fa-graduation-cap"></i>
+    <h1>求职助手 <span>· 校园版</span></h1>
+  </div>
+
+  <!-- 模块一：用户提问 -->
+  <div class="question-section">
+    <div class="question-label">
+      <i class="fas fa-comment-dots"></i> 描述你的背景或意向
+    </div>
+    <div class="input-wrapper">
+      <textarea id="userQuestion" placeholder="例如：我是计算机专业大三学生，有Python基础，想找数据分析方向的实习..." rows="2">计算机专业大三，熟悉Python、SQL，做过两个数据分析项目，想找数据相关岗位。</textarea>
+      <button class="btn-ask" id="askBtn">
+        <i class="fas fa-paper-plane"></i> 提问
+      </button>
+    </div>
+    <div class="hint-text">
+      <i class="fas fa-arrow-right"></i> 输入后点击提问，AI将为你解析
+    </div>
+  </div>
+
+  <!-- 模块二：AI 回答 (四个卡片) -->
+  <div class="answer-section" id="answerSection">
+    <!-- 使用 grid 展示四个维度 -->
+    <div class="answer-grid" id="answerGrid">
+      <!-- 适合岗位 -->
+      <div class="answer-card">
+        <div class="card-title"><i class="fas fa-bullseye"></i> 适合岗位</div>
+        <div class="card-content" id="jobRole">
+          <span class="badge">数据分析师</span> <span class="badge" style="background:#e6f0ff;">BI 开发</span>
+          <div style="margin-top: 8px; font-size: 14px; color: #334155;">初级 · 实习</div>
+        </div>
+      </div>
+      <!-- 原因 -->
+      <div class="answer-card">
+        <div class="card-title"><i class="fas fa-lightbulb"></i> 原因</div>
+        <div class="card-content" id="reason">
+          你的 Python + SQL 技能组合与数据岗位高度匹配，项目经历展示了数据清洗与可视化能力，适合入门级数据分析。
+        </div>
+      </div>
+      <!-- 技能缺口 -->
+      <div class="answer-card">
+        <div class="card-title"><i class="fas fa-chart-line"></i> 技能缺口</div>
+        <div class="card-content" id="skillGap">
+          <span class="skill-tag">统计学基础</span>
+          <span class="skill-tag">A/B 测试</span>
+          <span class="skill-tag">Tableau</span>
+          <span class="skill-tag">Python 高级</span>
+          <div style="margin-top: 6px; font-size: 13px; color: #475569;">建议补充 2-3 项</div>
+        </div>
+      </div>
+      <!-- 建议 -->
+      <div class="answer-card card-suggestion">
+        <div class="card-title"><i class="fas fa-list-check"></i> 建议</div>
+        <div class="card-content" id="suggestion">
+          <ul style="list-style: none; padding-left: 0; margin: 0;">
+            <li style="display: flex; gap: 8px; margin-bottom: 6px;"><i class="fas fa-chevron-right" style="color: #2563eb; font-size: 12px; margin-top: 4px;"></i> 完成一个端到端的数据项目 (Kaggle)</li>
+            <li style="display: flex; gap: 8px; margin-bottom: 6px;"><i class="fas fa-chevron-right" style="color: #2563eb; font-size: 12px; margin-top: 4px;"></i> 学习 Tableau 或 Power BI</li>
+            <li style="display: flex; gap: 8px;"><i class="fas fa-chevron-right" style="color: #2563eb; font-size: 12px; margin-top: 4px;"></i> 优化简历中的项目描述</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <!-- 占位 / 空状态 (默认隐藏, 用v-show模拟) 但为了演示我们保留上面数据 -->
+  </div>
+
+  <!-- 注脚 (模拟后端数据来源) -->
+  <div style="margin-top: 28px; border-top: 1px solid #ecf1f7; padding-top: 16px; display: flex; justify-content: space-between; font-size: 13px; color: #94a3b8; flex-wrap: wrap;">
+    <span><i class="fas fa-database" style="margin-right: 4px;"></i> 后端 JSON 数据驱动</span>
+    <span><i class="fas fa-rotate-right" style="margin-right: 4px;"></i> 点击提问更新内容</span>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ---- 模拟后端返回的 JSON (对应四个字段) ----
+
+    // 当前索引，用于轮换演示不同的返回
+    let currentIndex = 0;
+
+    // DOM 元素
+    const questionInput = document.getElementById('userQuestion');
+    const askBtn = document.getElementById('askBtn');
+    const jobRoleEl = document.getElementById('jobRole');
+    const reasonEl = document.getElementById('reason');
+    const skillGapEl = document.getElementById('skillGap');
+    const suggestionEl = document.getElementById('suggestion');
+
+    // 渲染函数：根据 mock 数据更新卡片
+    function renderResponse(data) {
+      // 1. 适合岗位
+      jobRoleEl.innerHTML = `
+        <span class="badge">${data.jobRole}</span>
+        <div style="margin-top: 8px; font-size: 14px; color: #334155;">${data.jobRole.includes('实习') ? '实习 · 初级' : '初级 · 校招'}</div>
+      `;
+
+      // 2. 原因
+      reasonEl.textContent = data.reason;
+
+      // 3. 技能缺口 (标签)
+      const skillTags = data.skillGap.map(skill => 
+        `<span class="skill-tag">${skill}</span>`
+      ).join(' ');
+      skillGapEl.innerHTML = `
+        ${skillTags}
+        <div style="margin-top: 6px; font-size: 13px; color: #475569;">建议优先补充 ${data.skillGap.length} 项</div>
+      `;
+
+      // 4. 建议 (列表)
+      const suggestionItems = data.suggestion.map(item => 
+        `<li style="display: flex; gap: 8px; margin-bottom: 6px;"><i class="fas fa-chevron-right" style="color: #2563eb; font-size: 12px; margin-top: 4px;"></i> ${item}</li>`
+      ).join('');
+      suggestionEl.innerHTML = `<ul style="list-style: none; padding-left: 0; margin: 0;">${suggestionItems}</ul>`;
+    }
+
+
+
+    // 处理提问点击
+    async function handleAsk() {
+    const question = questionInput.value.trim();
+
+    if (!question) {
+        questionInput.focus();
+        questionInput.style.borderColor = '#f43f5e';
+
+        setTimeout(() => {
+            questionInput.style.borderColor = '';
+        }, 800);
+
+        return;
+    }
+
+    // 按钮进入加载状态
+    askBtn.disabled = true;
+
+    const originalText = askBtn.innerHTML;
+
+    askBtn.innerHTML =
+        '<i class="fas fa-spinner fa-pulse"></i> 分析中';
+
+    try {
+        // 调用 FastAPI
+        const response = await fetch(
+            "http://127.0.0.1:8000/analyze",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    question: question
+                })
+            }
+        );
+
+        // 检查 HTTP 状态
+        if (!response.ok) {
+            throw new Error("后端请求失败：" + response.status);
+        }
+
+        // 获取 FastAPI 返回的 JSON
+        const result = await response.json();
+
+        console.log("后端返回：", result);
+
+        // 转换成前端需要的格式
+        const data = {
+            jobRole: result["适合岗位"].join("、"),
+            reason: result["原因"],
+            skillGap: result["技能缺口"],
+            suggestion: [result["建议"]]
+        };
+
+        // 更新页面
+        renderResponse(data);
+
+    } catch (error) {
+
+        console.error("请求失败：", error);
+
+        alert("AI 分析失败，请检查 FastAPI 是否正在运行。");
+
+    } finally {
+
+        // 恢复按钮
+        askBtn.disabled = false;
+        askBtn.innerHTML = originalText;
+    }
+}
+    // 绑定事件
+    askBtn.addEventListener('click', handleAsk);
+
+    // 按回车 (Ctrl+Enter 也触发)
+    questionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        handleAsk();
+      }
+    });
+
+    // 附加: 如果用户清空内容, 可恢复占位
+    console.log('校园求职Agent 前端已加载，后端JSON模拟就绪');
+  })();
+</script>
+
+</body>
+</html>
