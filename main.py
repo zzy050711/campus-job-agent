@@ -8,7 +8,8 @@ from fastapi import FastAPI,UploadFile,File
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from utils.pdf_reader import read_pdf
+from services.llm_service import chat_with_llm
+from services.resume_service import analyze_resume_file
 
 # 读取 .env
 load_dotenv()
@@ -72,54 +73,9 @@ def analyze(request: UserRequest):
 # 创建 /analyze_resume 接口
 @app.post("/analyze_resume")
 async def analyze_resume(
-        file: UploadFile = File(...)
+    file: UploadFile = File(...)
 ):
 
-    # 保存上传文件
-    file_path = f"temp_{file.filename}"
-
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(
-            file.file,
-            buffer
-        )
-
-
-    # 读取PDF文字
-    resume_text = read_pdf(file_path)
-
-
-    # 调用AI
-    response = client.chat.completions.create(
-        model="deepseek-v4-flash",
-        messages=[
-            {
-                "role": "system",
-                "content": """
-你是一名专业校园招聘顾问。
-
-分析学生简历，并返回JSON：
-
-{
- "用户画像":"",
- "适合岗位":[],
- "技能缺口":[],
- "简历优化建议":"",
- "学习规划":""
-}
-
-不要输出其他内容。
-"""
-            },
-            {
-                "role": "user",
-                "content": resume_text
-            }
-        ]
-    )
-    
-    # AI 返回的是 JSON 字符串
-    result = json.loads(response.choices[0].message.content)
-
+    result = analyze_resume_file(file)
     # 返回给前端
     return result
