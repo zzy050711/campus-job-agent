@@ -5,6 +5,7 @@ from utils.pdf_reader import read_pdf
 from services.llm_service import chat_with_llm
 from prompts.resume_prompt import RESUME_ANALYSIS_PROMPT
 from services.job_service import get_jobs
+from utils.job_filter import filter_jobs
 
 def analyze_resume_file(file):
 
@@ -20,9 +21,16 @@ def analyze_resume_file(file):
 
     # 读取PDF文字
     resume_text = read_pdf(file_path)
+    # 缩小jobs范围
     jobs = get_jobs()
+
+    matched_jobs = filter_jobs(
+    resume_text,
+    jobs
+)
+    
     jobs_json = json.dumps(
-    jobs,
+    matched_jobs,
     ensure_ascii=False,
     indent=2
 )

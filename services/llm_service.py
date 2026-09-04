@@ -10,11 +10,12 @@ client = OpenAI(
 )
 
 
-def chat_with_llm(messages):
+def chat_with_llm(messages, tools=None):
 
     response = client.chat.completions.create(
         model="deepseek-v4-flash",
-        messages=messages
+        messages=messages,
+        tools=tools
     )
 
-    return response.choices[0].message.content
+    return response
