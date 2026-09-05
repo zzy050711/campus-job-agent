@@ -2,7 +2,7 @@ import json
 
 from services.llm_service import chat_with_llm
 from tools.job_tools import execute_tool
-from memory import get_user_profile, save_memory, save_conversation
+from memory import get_user_profile, get_memory,save_memory, save_conversation
 
 
 TOOLS = [
@@ -88,6 +88,11 @@ def agent(user_input):
 
     # 3. 获取当前用户画像
     current_memory = get_user_profile()
+    memory_data = get_memory()
+    conversation_history = memory_data.get(
+    "conversation_history",
+    []
+)
 
     # 4. 把用户画像交给 Agent
     messages = [
@@ -96,12 +101,39 @@ def agent(user_input):
             "content": f"""
 你是一个校园求职 Agent。
 
-这是你记住的用户信息：
+这是用户的个人信息：
+
 {json.dumps(current_memory, ensure_ascii=False)}
 
-请结合这些信息回答用户问题。
+这是用户最近的对话历史：
 
-如果需要搜索岗位或匹配岗位，可以使用工具。
+{json.dumps(conversation_history, ensure_ascii=False)}
+
+你的任务是帮助用户进行校园求职。
+
+如果用户询问：
+- 适合什么岗位
+- 推荐岗位
+- 岗位匹配
+- 我的技能适合什么工作
+
+应该优先使用 match_jobs 工具。
+
+如果用户明确要求搜索某类岗位，
+使用 search_jobs 工具。
+
+岗位匹配结果返回后，你需要进一步分析：
+
+1. 哪个岗位最适合用户
+2. 为什么适合
+3. 用户已经具备哪些技能
+4. 用户缺少哪些技能
+5. 给出简短的求职建议
+
+不要只把工具返回的数据原样复制给用户，
+要结合用户的个人信息进行分析。
+
+最终使用自然语言回答。
 """
         },
         {
@@ -148,9 +180,10 @@ def agent(user_input):
                 memory_data = get_user_profile()
 
                 arguments["resume_text"] = (
-                    f"技能：{', '.join(memory_data['skills'])}"
-                    f"\n求职方向：{memory_data['target_job']}"
-                )
+            f"技能：{', '.join(memory_data['skills'])}"
+        )
+
+            arguments["target_job"] = memory_data["target_job"]
 
             # 10. 执行工具
             result = execute_tool(

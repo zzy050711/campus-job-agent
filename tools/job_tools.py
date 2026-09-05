@@ -4,16 +4,15 @@ from utils.job_filter import filter_jobs
 def search_jobs_tool(keyword: str):
     return search_jobs(keyword)
 
-def match_jobs_tool(resume_text: str):
+def match_jobs_tool(resume_text: str, target_job: str = None):
     jobs = get_jobs()
 
     return filter_jobs(
         resume_text,
-        jobs
+        jobs,
+        target_job
     )
-
 def execute_tool(tool_name, arguments):
-
     if tool_name == "search_jobs":
         return search_jobs_tool(**arguments)
 
