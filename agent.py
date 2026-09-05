@@ -3,7 +3,7 @@ import json
 from services.llm_service import chat_with_llm
 from tools.job_tools import execute_tool
 from memory import get_user_profile, get_memory,save_memory, save_conversation
-
+from tools.document_tools import *
 
 TOOLS = [
     {
@@ -23,6 +23,7 @@ TOOLS = [
             }
         }
     },
+
     {
         "type": "function",
         "function": {
@@ -34,12 +35,106 @@ TOOLS = [
                     "resume_text": {
                         "type": "string",
                         "description": "学生的简历内容"
+                    },
+                    "target_job": {
+                        "type": "string",
+                        "description": "用户目标岗位"
                     }
                 },
                 "required": ["resume_text"]
             }
         }
+    },
+
+    {
+        "type": "function",
+        "function": {
+            "name": "get_memory",
+            "description": "获取用户的个人求职画像，包括技能、目标岗位、项目经历等",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+
+{
+    "type": "function",
+    "function": {
+        "name": "create_resume",
+        "description": "根据用户个人画像和目标岗位生成定制版Word简历",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "target_job": {
+                    "type": "string",
+                    "description": "用户希望申请的目标岗位，例如 AI应用开发工程师、Python后端开发工程师"
+                },
+                "resume_feedback": {
+                    "type": "object",
+                    "description": "简历匹配分析结果"
+                }
+            },
+            "required": []
+        }
     }
+},
+{
+    "type": "function",
+    "function": {
+        "name": "analyze_jd",
+        "description": "分析岗位JD，提取岗位名称、技能要求、岗位职责和经验要求",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "jd_text": {
+                    "type": "string",
+                    "description": "完整的岗位JD文本"
+                }
+            },
+            "required": ["jd_text"]
+        }
+    }
+},
+{
+    "type": "function",
+    "function": {
+        "name": "match_resume_jd",
+        "description": "比较学生简历与岗位JD，分析匹配度、技能缺口和简历优化方向",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "resume_text": {
+                    "type": "string",
+                    "description": "学生简历内容"
+                },
+                "jd_text": {
+                    "type": "string",
+                    "description": "岗位JD内容"
+                }
+            },
+            "required": ["resume_text", "jd_text"]
+        }
+    }
+},
+{
+"type":"function",
+"function":{
+"name":"parse_document",
+"description":"读取用户上传的PDF简历或者岗位文件",
+"parameters":{
+"type":"object",
+"properties":{
+"file_path":{
+"type":"string"
+}
+},
+"required":[
+"file_path"
+]
+}
+}
+}
 ]
 
 
@@ -101,6 +196,12 @@ def agent(user_input):
             "content": f"""
 你是一个校园求职 Agent。
 
+如果用户提供文件路径或者上传文件：
+
+首先调用 parse_document 获取文件内容。
+
+不要直接假设文件内容。
+
 这是用户的个人信息：
 
 {json.dumps(current_memory, ensure_ascii=False)}
@@ -121,6 +222,29 @@ def agent(user_input):
 
 如果用户明确要求搜索某类岗位，
 使用 search_jobs 工具。
+
+如果用户提供岗位JD并要求分析岗位，
+使用 analyze_jd 工具。
+
+如果用户希望知道自己的简历是否适合某个岗位，
+或者希望分析自己与岗位的匹配程度，
+使用 match_resume_jd 工具。
+
+如果用户希望针对某个岗位修改或生成简历，
+应该先分析岗位要求，再结合用户画像生成定制简历。
+
+如果用户要求生成、创建、制作Word简历，
+使用 create_resume 工具。
+
+如果用户明确指定了目标岗位，
+把目标岗位传给 create_resume。
+
+如果用户没有指定目标岗位，
+使用用户 Memory 中已经保存的 target_job。
+
+create_resume 工具成功后，
+告诉用户简历已经生成，
+并告诉用户可以通过 /download_resume 下载。
 
 岗位匹配结果返回后，你需要进一步分析：
 
@@ -182,8 +306,12 @@ def agent(user_input):
                 arguments["resume_text"] = (
             f"技能：{', '.join(memory_data['skills'])}"
         )
+            if tool_name == "create_resume":
 
-            arguments["target_job"] = memory_data["target_job"]
+                memory_data = get_user_profile()
+
+                if not arguments.get("target_job"):
+                    arguments["target_job"] = memory_data["target_job"]
 
             # 10. 执行工具
             result = execute_tool(

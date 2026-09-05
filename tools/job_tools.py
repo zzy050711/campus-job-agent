@@ -1,22 +1,53 @@
 from services.job_service import search_jobs, get_jobs
 from utils.job_filter import filter_jobs
+from memory import get_user_profile
+from tools.jd_tools import analyze_jd, match_resume_jd
+from tools.resume_tools import create_resume
+from tools.document_tools import parse_document
 
-def search_jobs_tool(keyword: str):
-    return search_jobs(keyword)
+def execute_tool(name, args):
 
-def match_jobs_tool(resume_text: str, target_job: str = None):
-    jobs = get_jobs()
 
-    return filter_jobs(
-        resume_text,
-        jobs,
-        target_job
+    if name == "search_jobs":
+
+        return search_jobs(
+            args["keyword"]
+        )
+
+
+    if name == "match_jobs":
+
+        return filter_jobs(
+            args["resume_text"],
+            get_jobs(),
+            args.get("target_job")
+        )
+
+
+    if name == "get_memory":
+
+        return get_user_profile()
+
+    if name == "create_resume":
+        return create_resume(
+        args.get("target_job")
     )
-def execute_tool(tool_name, arguments):
-    if tool_name == "search_jobs":
-        return search_jobs_tool(**arguments)
+    if name == "analyze_jd":
+        return analyze_jd(
+            args["jd_text"]
+        )
 
-    if tool_name == "match_jobs":
-        return match_jobs_tool(**arguments)
+    if name == "match_resume_jd":
+        return match_resume_jd(
+            args["resume_text"],
+            args["jd_text"]
+        )
 
-    return None
+    if name == "parse_document":
+
+        return parse_document(
+        args["file_path"]
+    )
+    return {
+        "error": "未知工具"
+    }

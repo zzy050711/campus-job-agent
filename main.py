@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from services.resume_service import analyze_resume_file
 from agent import agent
+import os
 
 # 创建 FastAPI 应用
 app = FastAPI()
@@ -40,5 +41,14 @@ async def analyze_resume(
 ):
 
     result = analyze_resume_file(file)
-    # 返回给前端
+
     return result
+
+# 创建 /download_resume 接口
+@app.get("/download_resume")
+def download_resume():
+    return FileResponse(
+        "AI定制简历.docx",
+        filename="AI定制简历.docx",
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
